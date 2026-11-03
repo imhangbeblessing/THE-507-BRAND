@@ -319,7 +319,7 @@ img { display: block; max-width: 100%; }
 .detail-perks svg { color: #81907b; }
 .detail-perks a { text-decoration: underline; }
 
-.custom-page { padding-top: 64px; padding-bottom: 95px; background: #fdfcfb; }
+.custom-page { padding-top: 0; padding-bottom: 95px; background: #fdfcfb; }
 .custom-heading { text-align: center; max-width: 670px; margin: 0 auto 46px; }
 .custom-heading h1 { font-size: clamp(54px, 6vw, 78px); margin: 16px 0; }
 .custom-heading p { color: var(--muted); font-size: 12px; line-height: 1.9; max-width: 450px; margin: 0 auto; }
@@ -338,10 +338,17 @@ img { display: block; max-width: 100%; }
 .wizard-step h2 { font: 500 clamp(30px, 4vw, 42px)/1 var(--serif); margin: 8px 0; }
 .wizard-description { font-size: 11px; color: var(--muted); line-height: 1.7; margin: 0 0 24px; }
 .wizard-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px 13px; }
-.wizard-form-grid label, .full-field, .upload-field, .measure-grid label, .tracking-form label, .account-form > label { display: flex; flex-direction: column; gap: 7px; font-size: 10px; font-weight: 600; color: #51463f; }
-.wizard-form-grid input, .wizard-form-grid select, .full-field input, .full-field textarea, .upload-field input, .measure-grid input, .tracking-form input, .account-form input, .contact-form input, .contact-form select, .contact-form textarea { width: 100%; min-height: 42px; border: 1px solid #e5dfd9; padding: 10px 11px; border-radius: 0; background: white; color: var(--chocolate); outline: none; font-size: 11px; }
-.wizard-form-grid input:focus, .wizard-form-grid select:focus, .full-field input:focus, .full-field textarea:focus, .measure-grid input:focus { border-color: #b89a72; }
+.wizard-form-grid label, .wizard-date-field, .full-field, .upload-field, .measure-grid label, .tracking-form label, .account-form > label { display: flex; flex-direction: column; gap: 7px; font-size: 10px; font-weight: 600; color: #51463f; }
+.wizard-date-field > label { flex-direction: row; align-items: baseline; justify-content: space-between; min-width: 0; }
+.wizard-date-field > label .optional { flex: 0 0 auto; margin-left: 8px; white-space: nowrap; }
+.wizard-form-grid input, .wizard-form-grid select, .wizard-date-field input, .full-field input, .full-field textarea, .upload-field input, .measure-grid input, .tracking-form input, .account-form input, .contact-form input, .contact-form select, .contact-form textarea { width: 100%; min-height: 42px; border: 1px solid #e5dfd9; padding: 10px 11px; border-radius: 0; background: white; color: var(--chocolate); outline: none; font-size: 11px; }
+.wizard-form-grid input:focus, .wizard-form-grid select:focus, .wizard-date-field input:focus, .full-field input:focus, .full-field textarea:focus, .measure-grid input:focus { border-color: #b89a72; }
 .wizard-form-grid select { appearance: auto; }
+.date-input-control { position: relative; display: flex; width: 100%; min-width: 0; }
+.date-input-control > input[type="text"] { padding-right: 42px; }
+.date-picker-icon { position: absolute; top: 1px; right: 1px; bottom: 1px; width: 40px; display: grid; place-items: center; color: var(--muted); pointer-events: none; }
+.date-input-control:focus-within { outline: 2px solid #a87d54; outline-offset: 2px; }
+.date-input-control > .date-picker-native { position: absolute; z-index: 1; top: 0; right: 0; width: 40px; height: 100%; min-height: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
 .span-two { grid-column: span 2; }
 .optional { font-weight: 400; color: #988d85; }
 .input-with-unit { display: flex; align-items: center; border: 1px solid #e5dfd9; }
@@ -774,7 +781,7 @@ img { display: block; max-width: 100%; }
   .detail-actions { gap: 7px; }
   .quantity-control { min-width: 90px; }
   .add-cart { font-size: 9px; padding: 0 10px; }
-  .custom-page { padding-top: 42px; padding-bottom: 65px; }
+  .custom-page { padding-top: 0; padding-bottom: 65px; }
   .custom-heading { margin-bottom: 30px; }
   .custom-heading h1 { font-size: 56px; }
   .custom-heading p { font-size: 10px; }
@@ -784,8 +791,9 @@ img { display: block; max-width: 100%; }
   .wizard-step h2 { font-size: 32px; }
   .wizard-description { font-size: 10px; }
   .wizard-form-grid { gap: 12px 9px; }
-  .wizard-form-grid label { font-size: 9px; }
-  .wizard-form-grid input, .wizard-form-grid select { min-height: 40px; font-size: 10px; padding: 9px; }
+  .wizard-form-grid label, .wizard-date-field { font-size: 9px; }
+  .wizard-form-grid input, .wizard-form-grid select, .wizard-date-field input { min-height: 40px; font-size: 10px; padding: 9px; }
+  .wizard-date-field .date-input-control > input[type="text"] { padding-right: 42px; }
   .selection-grid { gap: 7px; }
   .selection-card { min-height: 88px; padding: 10px; }
   .selection-card > b { font-size: 16px; }
