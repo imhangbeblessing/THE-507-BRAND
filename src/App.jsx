@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -12,6 +12,10 @@ import { useStore } from './store';
 
 const imageHero = 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=2200&q=90';
 const imageCraft = 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=1200&q=85';
+const heroCopy = [
+  { title: <>HIGH FASHION FOR<br /><span>MINI ICONS.</span></>, sub: 'Thoughtfully tailored, beautifully made outfits for little ones with big personalities.', label: 'Clothing for their kind of wonderful' },
+  { title: <>LITTLE OUTFITS.<br /><span>BIG PERSONALITIES.</span></>, sub: 'Made for everyday adventures, family celebrations and all their little in-between moments.', label: 'Made for every little moment' },
+];
 const shopMenuItems = [
   { title: "Girls' outfits", detail: 'Dresses and little favourites', image: products[0].image, to: '/girls' },
   { title: "Boys' outfits", detail: 'Easy pieces for big days', image: products[1].image, to: '/boys' },
@@ -20,6 +24,7 @@ const shopMenuItems = [
   { title: 'Party & occasion', detail: 'A little extra for special days', image: products[5].image, to: '/shop?occasion=Party' },
   { title: 'Traditional wear', detail: 'Colourful styles made to celebrate', image: products[3].image, to: '/shop?occasion=Traditional' },
 ];
+const pageIntroPaths = new Set(['/shop', '/girls', '/boys', '/baby', '/casual-wear', '/corporate-wear', '/party-wear', '/outing-wear', '/traditional-wear', '/fabrics', '/about', '/account']);
 
 function Logo({ footer = false }) {
   return <Link to="/" className={`brand-mark ${footer ? 'brand-mark-footer' : ''}`} aria-label="The 507 Brand home">
@@ -28,57 +33,97 @@ function Logo({ footer = false }) {
   </Link>;
 }
 
+function Announcement({ className = '' }) {
+  return <div className={`announcement ${className}`.trim()}>Beautifully made for little ones <span>·</span> Complimentary delivery on orders over ₦75,000</div>;
+}
+
 function Header() {
   const { cart, wishlist } = useStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [pastHero, setPastHero] = useState(false);
   const location = useLocation();
   const closeMenu = () => setMenuOpen(false);
 
+  useEffect(() => {
+    const hasImageHeader = location.pathname === '/' || pageIntroPaths.has(location.pathname);
+    if (!hasImageHeader) {
+      setPastHero(false);
+      return undefined;
+    }
+
+    const updateStickyHeader = () => {
+      const background = document.querySelector(location.pathname === '/' ? '.hero' : '.page-intro');
+      const header = document.querySelector('.site-header-group');
+      setPastHero(Boolean(background && header && background.getBoundingClientRect().bottom <= header.offsetHeight + 30));
+    };
+
+    updateStickyHeader();
+    window.addEventListener('scroll', updateStickyHeader, { passive: true });
+    window.addEventListener('resize', updateStickyHeader);
+    const root = document.getElementById('root');
+    const observer = root ? new MutationObserver(updateStickyHeader) : null;
+    observer?.observe(root, { childList: true, subtree: true });
+    return () => {
+      window.removeEventListener('scroll', updateStickyHeader);
+      window.removeEventListener('resize', updateStickyHeader);
+      observer?.disconnect();
+    };
+  }, [location.pathname]);
+
   return <>
-    <div className="announcement">Beautifully made for little ones <span>·</span> Complimentary delivery on orders over ₦75,000</div>
-    <header className="site-header">
-      <button className="icon-button mobile-menu-toggle" onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu size={21} /></button>
-      <Logo />
-      <nav className="desktop-nav" aria-label="Main navigation">
-        <NavLink to="/" end>HOME</NavLink>
-        <div className="nav-dropdown">
-          <NavLink to="/shop">SHOP <ChevronDown size={13} /></NavLink>
-          <div className="mega-menu">
-            <div className="mega-menu-heading">
-              <div><small>THE 507 SHOP</small><h2>Find their next favourite</h2></div>
-              <Link to="/shop" className="mega-view-all">VIEW ALL <ArrowRight size={14} /></Link>
-            </div>
-            <div className="mega-menu-items">
-              {shopMenuItems.map((item) => <Link className="mega-item" to={item.to} key={item.title}>
-                <img src={item.image} alt="" loading="lazy" />
-                <span><strong>{item.title}</strong><small>{item.detail}</small></span>
-                <ArrowUpRight className="mega-item-arrow" size={14} />
-              </Link>)}
+    <header className={`site-header-group ${location.pathname === '/' ? 'is-home-header' : ''} ${pageIntroPaths.has(location.pathname) ? 'is-image-page-header' : ''} ${pastHero ? 'is-past-hero' : ''}`}>
+      {location.pathname !== '/' && !pageIntroPaths.has(location.pathname) && <Announcement />}
+      <div className="site-header">
+        <button className="icon-button mobile-menu-toggle" onClick={() => setMenuOpen(true)} aria-label="Open navigation"><Menu size={21} /></button>
+        <Logo />
+        <nav className="desktop-nav" aria-label="Main navigation">
+          <NavLink to="/" end>HOME</NavLink>
+          <div className="nav-dropdown">
+            <NavLink to="/shop">SHOP <ChevronDown size={13} /></NavLink>
+            <div className="mega-menu">
+              <div className="mega-menu-heading">
+                <div><small>THE 507 SHOP</small><h2>Find their next favourite</h2></div>
+                <Link to="/shop" className="mega-view-all">VIEW ALL <ArrowRight size={14} /></Link>
+              </div>
+              <div className="mega-menu-items">
+                {shopMenuItems.map((item) => <Link className="mega-item" to={item.to} key={item.title}>
+                  <img src={item.image} alt="" loading="lazy" />
+                  <span><strong>{item.title}</strong><small>{item.detail}</small></span>
+                  <ArrowUpRight className="mega-item-arrow" size={14} />
+                </Link>)}
+              </div>
             </div>
           </div>
+          <NavLink to="/girls">GIRLS</NavLink><NavLink to="/boys">BOYS</NavLink><NavLink to="/baby">BABY</NavLink>
+          <NavLink to="/about">OUR STORY</NavLink>
+        </nav>
+        <div className="header-actions">
+          <Link to="/account" className="icon-button account-link" aria-label="Sign in">SIGN IN</Link>
+          <button className="icon-button search-trigger" aria-label="Search" onClick={() => setSearchOpen((open) => !open)}><Search size={19} /></button>
+          <Link to="/wishlist" className="icon-button count-icon" aria-label={`Wishlist, ${wishlist.length} items`}><Heart size={19} />{wishlist.length > 0 && <sup>{wishlist.length}</sup>}</Link>
+          <Link to="/cart" className="icon-button count-icon" aria-label={`Shopping bag, ${cart.reduce((sum, item) => sum + item.quantity, 0)} items`}><ShoppingBag size={19} />{cart.length > 0 && <sup>{cart.reduce((sum, item) => sum + item.quantity, 0)}</sup>}</Link>
+          <Link to="/custom-designer" className="button button-dark header-cta">DESIGN YOUR OUTFIT <ArrowUpRight size={15} /></Link>
         </div>
-        <NavLink to="/girls">GIRLS</NavLink><NavLink to="/boys">BOYS</NavLink><NavLink to="/baby">BABY</NavLink>
-        <Link to="/about">OUR STORY</Link>
-      </nav>
-      <div className="header-actions">
-        <button className="icon-button search-trigger" aria-label="Search" onClick={() => setSearchOpen((open) => !open)}><Search size={19} /></button>
-        <Link to="/account" className="icon-button account-link" aria-label="My account"><span className="user-outline">○</span></Link>
-        <Link to="/wishlist" className="icon-button count-icon" aria-label={`Wishlist, ${wishlist.length} items`}><Heart size={19} />{wishlist.length > 0 && <sup>{wishlist.length}</sup>}</Link>
-        <Link to="/cart" className="icon-button count-icon" aria-label={`Shopping bag, ${cart.reduce((sum, item) => sum + item.quantity, 0)} items`}><ShoppingBag size={19} />{cart.length > 0 && <sup>{cart.reduce((sum, item) => sum + item.quantity, 0)}</sup>}</Link>
-        <Link to="/custom-designer" className="button button-dark header-cta">DESIGN YOUR OUTFIT <ArrowUpRight size={15} /></Link>
       </div>
     </header>
     <AnimatePresence>
       {menuOpen && <motion.div className="mobile-menu-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeMenu}>
         <motion.aside className="mobile-menu" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ duration: .25 }} onClick={(event) => event.stopPropagation()}>
           <div className="mobile-menu-top"><Logo /><button className="icon-button" onClick={closeMenu} aria-label="Close menu"><X /></button></div>
-          {['HOME', 'SHOP ALL', 'GIRLS', 'BOYS', 'BABY', 'OUR STORY', 'FABRICS', 'MEASUREMENT GUIDE', 'FAQS'].map((label) => {
-            const paths = { HOME: '/', 'SHOP ALL': '/shop', GIRLS: '/girls', BOYS: '/boys', BABY: '/baby', 'OUR STORY': '/about', FABRICS: '/fabrics', 'MEASUREMENT GUIDE': '/measurement-guide', FAQS: '/faq' };
-            return <Link key={label} to={paths[label]} onClick={closeMenu}>{label}<ArrowUpRight size={15} /></Link>;
+          {['HOME', 'SHOP ALL', 'GIRLS', 'BOYS', 'BABY', 'SIGN IN', 'OUR STORY', 'FABRICS', 'MEASUREMENT GUIDE', 'FAQS'].map((label) => {
+            const paths = { HOME: '/', 'SHOP ALL': '/shop', GIRLS: '/girls', BOYS: '/boys', BABY: '/baby', 'SIGN IN': '/account', 'OUR STORY': '/about', FABRICS: '/fabrics', 'MEASUREMENT GUIDE': '/measurement-guide', FAQS: '/faq' };
+            const className = label === 'SIGN IN' ? 'mobile-menu-account' : undefined;
+            return <Link key={label} to={paths[label]} className={className} onClick={closeMenu}>{label}<ArrowUpRight size={15} /></Link>;
           })}
           <Link to="/custom-designer" className="button button-dark" onClick={closeMenu}>DESIGN YOUR OUTFIT <ArrowUpRight size={15} /></Link>
+          <Link to="/contact" className="button button-outline mobile-menu-contact-cta" onClick={closeMenu}>CONTACT US <ArrowUpRight size={15} /></Link>
+          <div className="mobile-menu-contact-details" aria-label="Contact details">
+            <a href={`tel:${brandContact.phone.replace(/\s/g, '')}`}><Phone size={14} />{brandContact.phone}</a>
+            <a href={`mailto:${brandContact.email}`}><Mail size={14} />{brandContact.email}</a>
+            <a href={whatsappUrl} target="_blank" rel="noreferrer"><MessageCircle size={14} />WhatsApp: {brandContact.whatsapp}</a>
+          </div>
         </motion.aside>
       </motion.div>}
     </AnimatePresence>
@@ -98,7 +143,7 @@ function Footer() {
   const [submitted, setSubmitted] = useState(false);
   return <footer className="site-footer">
     <div className="footer-main">
-      <div className="footer-brand"><Logo footer /><p>Thoughtfully tailored little outfits, made for their little moments.</p><div className="footer-contact-links"><a href={`tel:${brandContact.phone.replace(/\s/g, '')}`}><Phone size={13} />{brandContact.phone}</a><a href={`mailto:${brandContact.email}`}><Mail size={13} />{brandContact.email}</a></div><div className="social-links"><a href={brandContact.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><Instagram size={17} /></a><a href={brandContact.tiktok} target="_blank" rel="noreferrer" aria-label="TikTok"><Music2 size={17} /></a></div></div>
+      <div className="footer-brand"><Logo footer /><p>Thoughtfully tailored little outfits, made for their little moments.</p><div className="footer-contact-links"><a href={`tel:${brandContact.phone.replace(/\s/g, '')}`}><Phone size={13} />{brandContact.phone}</a><a href={`mailto:${brandContact.email}`}><Mail size={13} />{brandContact.email}</a></div><div className="social-links"><a href={brandContact.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><Instagram size={17} /></a><a href={brandContact.tiktok} target="_blank" rel="noreferrer" aria-label="TikTok"><Music2 size={17} /></a><a href={whatsappUrl} target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle size={17} /></a></div></div>
       <div className="footer-column"><h3>Explore</h3><Link to="/shop">Shop all</Link><Link to="/girls">Girls</Link><Link to="/boys">Boys</Link><Link to="/baby">Baby</Link><Link to="/custom-designer">Design your outfit</Link></div>
       <div className="footer-column"><h3>Here to help</h3><Link to="/how-it-works">How it works</Link><Link to="/measurement-guide">Measurement guide</Link><Link to="/tracking">Track an order</Link><Link to="/faq">FAQs</Link><Link to="/contact">Contact us</Link></div>
       <div className="footer-newsletter"><h3>A little note from us</h3><p>New collections, thoughtful details and a little inspiration, delivered occasionally.</p><form onSubmit={(event) => { event.preventDefault(); if (!email.includes('@')) { notify('Please enter a valid email address'); return; } setSubmitted(true); setEmail(''); notify('You’re on the list. Thank you!'); }}><input type="email" placeholder="Your email address" value={email} onChange={(event) => setEmail(event.target.value)} required aria-label="Email address" /><button aria-label="Subscribe"><ArrowRight size={18} /></button></form>{submitted && <small className="success-text">Thank you for joining us.</small>}</div>
@@ -132,24 +177,34 @@ function SectionHeading({ eyebrow, title, text, link, to = '/shop', center = fal
 
 function HomePage() {
   const [slide, setSlide] = useState(0);
-  const heroCopy = [
-    { title: <>HIGH FASHION FOR<br /><span>MINI ICONS.</span></>, sub: 'Thoughtfully tailored, beautifully made outfits for little ones with big personalities.' },
-    { title: <>LITTLE OUTFITS.<br /><span>BIG PERSONALITIES.</span></>, sub: 'Made for everyday adventures, family celebrations and all their little in-between moments.' },
-  ];
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const interval = window.setInterval(() => {
+      setSlide((currentSlide) => (currentSlide + 1) % heroCopy.length);
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, []);
   const copy = heroCopy[slide];
   return <>
     <main>
       <section className="hero">
+        <Announcement className="hero-announcement" />
         <img src={imageHero} className="hero-image" alt="Children dressed for a special occasion in timeless, tailored clothing" fetchpriority="high" />
         <div className="hero-shade" />
         <div className="hero-content">
-          <span className="eyebrow hero-badge">Premium kids bespoke · Ages 0–12</span>
-          <h1>{copy.title}</h1>
-          <p>{copy.sub}</p>
-          <div className="hero-actions"><Link to="/shop" className="button button-light">Explore outfits <ArrowRight size={16} /></Link><Link to="/custom-designer" className="button button-outline-light">Create a custom outfit</Link></div>
+          <AnimatePresence mode="wait">
+            <motion.div key={slide} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: .3 }}>
+              <span className="eyebrow hero-badge">Premium kids bespoke · Ages 0–12</span>
+              <h1>{copy.title}</h1>
+              <p>{copy.sub}</p>
+              <div className="hero-actions"><Link to="/shop" className="button button-light">Explore outfits <ArrowRight size={16} /></Link><Link to="/custom-designer" className="button button-outline-light">Create a custom outfit</Link></div>
+            </motion.div>
+          </AnimatePresence>
         </div>
-        <div className="hero-footnote"><span>01 — 02</span><span>Clothing for their kind of wonderful</span></div>
-        <div className="hero-controls"><button onClick={() => setSlide((slide + 1) % heroCopy.length)} aria-label="Previous slide"><ChevronLeft size={17} /></button><button onClick={() => setSlide((slide + 1) % heroCopy.length)} aria-label="Next slide"><ChevronRight size={17} /></button></div>
+        <div className="hero-bottom">
+          <div className="hero-footnote"><span>{String(slide + 1).padStart(2, '0')} — {String(heroCopy.length).padStart(2, '0')}</span><span>{copy.label}</span></div>
+          <div className="hero-controls"><button onClick={() => setSlide((currentSlide) => (currentSlide - 1 + heroCopy.length) % heroCopy.length)} aria-label="Previous slide"><ChevronLeft size={17} /></button><button onClick={() => setSlide((currentSlide) => (currentSlide + 1) % heroCopy.length)} aria-label="Next slide"><ChevronRight size={17} /></button></div>
+        </div>
       </section>
 
       <section className="section category-section page-gutter">
@@ -187,11 +242,12 @@ function HomePage() {
 }
 
 function PageIntro({ eyebrow, title, text, image }) {
-  return <section className="page-intro"><div className="page-intro-copy"><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{text}</p></div>{image && <div className="page-intro-image"><img src={image} alt="" /></div>}</section>;
+  return <section className="page-intro has-announcement"><Announcement className="page-intro-announcement" /><div className="page-intro-copy"><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{text}</p></div>{image && <div className="page-intro-image"><motion.img key={image} src={image} alt="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .35, ease: 'easeOut' }} /></div>}</section>;
 }
 
 function ShopPage() {
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const query = params.get('q') || '';
   const category = params.get('category') || (location.pathname === '/girls' ? 'Girls' : location.pathname === '/boys' ? 'Boys' : location.pathname === '/baby' ? 'Baby' : '');
@@ -213,8 +269,11 @@ function ShopPage() {
     return result;
   }, [category, search, occasion, fabric, age, sort]);
   const title = category ? `${category === 'Baby' ? 'Babywear' : `${category}'s collection`}` : 'The little shop';
+  const introImage = category
+    ? products.find((product) => product.category.toLowerCase() === category.toLowerCase())?.image || products[0].image
+    : products[0].image;
   return <main className="page-shell">
-    <PageIntro eyebrow="The 507 collection" title={title} text="Beautifully considered pieces for every little personality, every day and every special occasion." image={products[0].image} />
+    <PageIntro eyebrow="The 507 collection" title={title} text="Beautifully considered pieces for every little personality, every day and every special occasion." image={introImage} />
     <section className="shop-section page-gutter">
       <div className="shop-intro-note"><span className="eyebrow">Little outfits, thoughtfully made</span><p>Browse by collection, find the right size and fabric, and open any piece for all the lovely details.</p></div>
       <div className="shop-toolbar"><span>{filtered.length} {filtered.length === 1 ? 'STYLE' : 'STYLES'} TO EXPLORE</span><div className="shop-controls"><label className="shop-search"><Search size={16} /><input value={search} onChange={(event) => { setSearch(event.target.value); setParams((current) => { if (event.target.value) current.set('q', event.target.value); else current.delete('q'); return current; }); }} placeholder="Search the collection" /></label><button className="filter-trigger" onClick={() => setFiltersOpen((open) => !open)}><SlidersHorizontal size={16} /> FILTERS <ChevronDown size={14} /></button><label className="sort-select">SORT BY <select value={sort} onChange={(event) => setSort(event.target.value)}><option>Featured</option><option>Price: low to high</option><option>Price: high to low</option><option>Name: A to Z</option></select></label></div></div>
@@ -431,7 +490,7 @@ function AccountPage() {
   const { orders, notify } = useStore();
   const [mode, setMode] = useState('Sign in');
   const [submitted, setSubmitted] = useState(false);
-  return <main className="page-shell page-gutter account-page"><div className="cart-heading"><span className="eyebrow">Your little corner</span><h1>My account</h1><p>Keep your orders and little details together.</p></div><div className="account-layout"><form className="account-form" onSubmit={(event) => { event.preventDefault(); setSubmitted(true); notify('Account access is a demo feature and is not connected yet.'); }}><div className="account-tabs">{['Sign in', 'Create account', 'Forgot password'].map((item) => <button type="button" className={mode === item ? 'active' : ''} key={item} onClick={() => { setMode(item); setSubmitted(false); }}>{item}</button>)}</div><h2>{mode}</h2>{mode === 'Create account' && <label>Your name<input required /></label>}<label>Email address<input type="email" required /></label>{mode !== 'Forgot password' && <label>Password<input type="password" minLength="6" required /></label>}<button className="button button-dark full-button">{mode}</button>{submitted && <small className="demo-note">Authentication needs to be connected before accounts can be created.</small>}</form><div className="account-orders"><span className="eyebrow">Recent orders</span><h2>Your order notes</h2>{orders.length ? orders.slice(0, 3).map((order) => <div className="account-order" key={order.reference}><b>{order.reference}</b><span>{order.type || 'Order'} · {order.status}</span><Link to="/tracking">Track <ArrowRight size={13} /></Link></div>) : <div className="account-empty"><p>Your order history will appear here once you place a demo order.</p><Link to="/shop" className="text-link">Explore the collection <ArrowRight size={14} /></Link></div>}<div className="account-feature-note"><Ruler size={17} /><div><b>Little ones grow in a blink.</b><p>Saved child profiles and measurements will be available when accounts are connected.</p></div></div></div></div></main>;
+  return <main className="page-shell account-page"><PageIntro eyebrow="Your little corner" title="My account" text="Keep your orders and little details together." image={imageHero} /><section className="account-content page-gutter"><div className="account-layout"><form className="account-form" onSubmit={(event) => { event.preventDefault(); setSubmitted(true); notify('Account access is a demo feature and is not connected yet.'); }}><div className="account-tabs">{['Sign in', 'Create account', 'Forgot password'].map((item) => <button type="button" className={mode === item ? 'active' : ''} key={item} onClick={() => { setMode(item); setSubmitted(false); }}>{item}</button>)}</div><h2>{mode}</h2>{mode === 'Create account' && <label>Your name<input required /></label>}<label>Email address<input type="email" required /></label>{mode !== 'Forgot password' && <label>Password<input type="password" minLength="6" required /></label>}<button className="button button-dark full-button">{mode}</button>{submitted && <small className="demo-note">Authentication needs to be connected before accounts can be created.</small>}</form><div className="account-orders"><span className="eyebrow">Recent orders</span><h2>Your order notes</h2>{orders.length ? orders.slice(0, 3).map((order) => <div className="account-order" key={order.reference}><b>{order.reference}</b><span>{order.type || 'Order'} · {order.status}</span><Link to="/tracking">Track <ArrowRight size={13} /></Link></div>) : <div className="account-empty"><p>Your order history will appear here once you place a demo order.</p><Link to="/shop" className="text-link">Explore the collection <ArrowRight size={14} /></Link></div>}<div className="account-feature-note"><Ruler size={17} /><div><b>Little ones grow in a blink.</b><p>Saved child profiles and measurements will be available when accounts are connected.</p></div></div></div></div></section></main>;
 }
 
 function OrdersPage() {
