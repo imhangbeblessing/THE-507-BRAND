@@ -793,7 +793,11 @@ img { display: block; max-width: 100%; }
   .wizard-form-grid { gap: 12px 9px; }
   .wizard-form-grid label, .wizard-date-field { font-size: 9px; }
   .wizard-form-grid input, .wizard-form-grid select, .wizard-date-field input { min-height: 40px; font-size: 10px; padding: 9px; }
-  .wizard-date-field .date-input-control > input[type="text"] { padding-right: 42px; }
+  .wizard-date-field { min-width: 0; }
+  .wizard-date-field > label { gap: 0; white-space: nowrap; }
+  .wizard-date-field > label .optional { display: none; }
+  .wizard-date-field .date-input-control { min-width: 0; }
+  .wizard-date-field .date-input-control > input[type="text"] { flex: 1 1 0; min-width: 0; padding-right: 42px; }
   .selection-grid { gap: 7px; }
   .selection-card { min-height: 88px; padding: 10px; }
   .selection-card > b { font-size: 16px; }
